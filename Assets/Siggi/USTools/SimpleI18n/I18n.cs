@@ -35,6 +35,7 @@ namespace SiggiUSTools {
         private bool _ready;
         private DataDictionary _fallbackDictionary;
         private DataDictionary _stringsDictionary;
+        private DataDictionary _byLanguageCode;
         private DataList _allLanguages;
         private DataList _listeners;
         [SerializeField] private TextAsset[] languagePacks;
@@ -43,6 +44,7 @@ namespace SiggiUSTools {
             if (_started) return;
             _started = true;
 
+            _byLanguageCode = new DataDictionary();
             _allLanguages = new DataList();
             _listeners = new DataList();
             for (int i = 0; i < languagePacks.Length; i++)
@@ -89,6 +91,7 @@ namespace SiggiUSTools {
             }
             if (_fallbackDictionary == null) _fallbackDictionary = dictionary;
             _allLanguages.Add(dictionary);
+            _byLanguageCode.SetValue(languageCode, dictionary);
         }
         public void AddLanguageChangeListener(UdonSharpBehaviour listener)
         {
@@ -183,6 +186,43 @@ namespace SiggiUSTools {
         {
             string result = _("languageName");
             return result == "languageName" ? _("languageCode") : result;
+        }
+
+        public string[] GetLanguages()
+        {
+            Start();
+            string[] languages = new string[_allLanguages.Count];
+            int successfulCount = 0;
+
+            for (int i = 0; i < _allLanguages.Count; i++)
+            {
+                if (!_allLanguages.TryGetValue(i, out DataToken languageToken)) continue;
+                DataDictionary dictionary = languageToken.DataDictionary;
+                if (!dictionary.TryGetValue("languageCode", out DataToken languageCodeResult)) continue;
+                languages[successfulCount++] = languageCodeResult.String;
+            }
+
+            if (successfulCount != languages.Length)
+            {
+                Debug.LogWarning($"[I18n] Some languages were not enumerated correctly.");
+                string[] shortenedArray = new string[successfulCount];
+                for (int i = 0; i < shortenedArray.Length; i++) shortenedArray[i] = languages[i];
+                return shortenedArray;
+            }
+
+            return languages;
+        }
+
+        public string GetLanguageName(string languageCode)
+        {
+            Start();
+            if (languageCode == null) return null;
+            if (!_byLanguageCode.TryGetValue(languageCode, out DataToken languageDictionaryToken)) return languageCode;
+            DataDictionary languagePack = languageDictionaryToken.DataDictionary;
+            if (!languagePack.TryGetValue("languageName", out DataToken languageNameToken)) return languageCode;
+            string languageName = languageNameToken.String;
+            if (languageName == null) return languageCode;
+            return languageName;
         }
 
         public string _(string key)
