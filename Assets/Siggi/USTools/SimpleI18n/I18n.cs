@@ -62,7 +62,7 @@ namespace SiggiUSTools {
             string currentLanguage = VRCPlayerApi.GetCurrentLanguage();
             if (currentLanguage != null)
             {
-                SetLanguage(currentLanguage);
+                DoSetLanguage(currentLanguage);
             }
 
             _ready = true;
@@ -132,6 +132,12 @@ namespace SiggiUSTools {
         }
 
         public bool SetLanguage(string rfc5646Code)
+        {
+            Start();
+            return DoSetLanguage(rfc5646Code);
+        }
+
+        bool DoSetLanguage(string rfc5646Code)
         {
             DataDictionary forwards = null;
             DataDictionary backwards = null;
