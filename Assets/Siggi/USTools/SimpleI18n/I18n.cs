@@ -255,5 +255,49 @@ namespace SiggiUSTools {
 
             return key;
         }
+
+        public string _(string key, string[] args)
+        {
+            string template = _(key);
+            if (args == null || args.Length == 0) return template;
+            if (args.Length % 2 != 0)
+            {
+                Debug.LogWarning($"[I18n] Odd number of placeholder args for key {key}; the last one is ignored.");
+            }
+
+            string result = "";
+            int pos = 0;
+            while (true)
+            {
+                int start = template.IndexOf("${", pos);
+                if (start < 0) break;
+                int end = template.IndexOf('}', start + 2);
+                if (end < 0) break;
+
+                result += template.Substring(pos, start - pos);
+                string name = template.Substring(start + 2, end - start - 2);
+                int index = FindArg(args, name);
+                if (index >= 0)
+                {
+                    result += args[index + 1];
+                }
+                else
+                {
+                    Debug.LogWarning($"[I18n] No value for placeholder {name} in key {key}");
+                    result += template.Substring(start, end - start + 1);
+                }
+                pos = end + 1;
+            }
+            return result + template.Substring(pos);
+        }
+
+        int FindArg(string[] args, string name)
+        {
+            for (int i = 0; i + 1 < args.Length; i += 2)
+            {
+                if (args[i] == name) return i;
+            }
+            return -1;
+        }
     }
 }
