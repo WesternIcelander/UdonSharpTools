@@ -31,7 +31,7 @@ using UnityEngine;
 using VRC.SDK3.Data;
 using VRC.SDKBase.Editor.BuildPipeline;
 
-namespace SiggiUSTools.Editor {
+namespace SiggiUSTools.SimpleI18nEditor {
     /// <summary>
     /// When a VRChat world build is requested or Play Mode is entered, asks the user whether to fill every I18n field
     /// on the scene's UdonSharpBehaviours that is null or doesn't point at the scene's I18n with the scene's I18n.

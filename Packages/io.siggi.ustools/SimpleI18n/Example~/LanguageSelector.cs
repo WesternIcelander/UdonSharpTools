@@ -7,6 +7,8 @@ using VRC.Udon;
 using SiggiUSTools;
 using TMPro;
 
+namespace SiggiUSTools
+{
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class LanguageSelector : UdonSharpBehaviour
 {
@@ -55,4 +57,5 @@ public class LanguageSelector : UdonSharpBehaviour
         if (index < 0 || index >= _languages.Length) return;
         i18n.SetLanguage(_languages[index]);
     }
+}
 }

@@ -1,0 +1,24 @@
+{
+  "name": "io.siggi.ustools",
+  "version": "1.0.0-snapshot",
+  "displayName": "Siggi UdonSharp Tools",
+  "description": "Tools that are useful in world building.",
+  "hideInEditor": false,
+  "unity": "2022.3",
+  "unityRelease": "22f1",
+  "license": "MIT",
+  "vpmDependencies": {
+    "com.vrchat.worlds": "^3.10.4"
+  },
+  "author": {
+    "name": "Sigurður Jón",
+    "email": "hey@siggi.io"
+  },
+  "samples": [
+    {
+      "displayName": "SimpleI18n Example",
+      "description": "Language selector demo",
+      "path": "SimpleI18n/Example~"
+    }
+  ]
+}
