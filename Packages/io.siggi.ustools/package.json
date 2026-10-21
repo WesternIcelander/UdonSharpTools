@@ -1,6 +1,6 @@
 {
   "name": "io.siggi.ustools",
-  "version": "1.0.0",
+  "version": "1.1.0-snapshot",
   "displayName": "Siggi UdonSharp Tools",
   "description": "Tools that are useful in world building.",
   "hideInEditor": false,
