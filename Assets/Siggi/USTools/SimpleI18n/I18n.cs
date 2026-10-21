@@ -29,6 +29,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 
 namespace SiggiUSTools {
+    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class I18n : UdonSharpBehaviour
     {
         private bool _started;

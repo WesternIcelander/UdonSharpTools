@@ -7,6 +7,7 @@ using VRC.Udon;
 using SiggiUSTools;
 using TMPro;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class LanguageSelector : UdonSharpBehaviour
 {
     [SerializeField] private I18n i18n;
