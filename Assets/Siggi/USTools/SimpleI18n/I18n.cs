@@ -94,6 +94,11 @@ namespace SiggiUSTools {
             _allLanguages.Add(dictionary);
             _byLanguageCode.SetValue(languageCode, dictionary);
         }
+        /// <summary>
+        /// Registers a behaviour to be notified when the language changes. The listener must have a public
+        /// <c>OnLanguageChange()</c> method, which is called whenever a new language pack is applied.
+        /// </summary>
+        /// <param name="listener">The behaviour to notify.</param>
         public void AddLanguageChangeListener(UdonSharpBehaviour listener)
         {
             Start();
@@ -132,6 +137,15 @@ namespace SiggiUSTools {
             return null;
         }
 
+        /// <summary>
+        /// Switches to the language pack that best matches the given language code, and notifies listeners if the
+        /// language changed. A pack with exactly that code is preferred. Failing that, a pack whose code begins with
+        /// the given code is used (<c>"en"</c> picks <c>"en-US"</c>), and then a pack whose code the given code begins
+        /// with (<c>"en-GB"</c> picks <c>"en"</c>). The language is chosen from the player's VRChat language at
+        /// startup, so this is only needed to let the player pick a different one.
+        /// </summary>
+        /// <param name="rfc5646Code">An RFC 5646 language code, such as <c>"en"</c> or <c>"zh-TW"</c>.</param>
+        /// <returns>True if a matching pack was found, false if none matched and the language was left unchanged.</returns>
         public bool SetLanguage(string rfc5646Code)
         {
             Start();
@@ -184,17 +198,29 @@ namespace SiggiUSTools {
             FireLanguageChangeEvent();
         }
 
+        /// <summary>
+        /// Gets the language code of the language pack in use, such as <c>"en"</c>. If no pack has been selected,
+        /// this is the code of the fallback pack, the first one in the language pack list.
+        /// </summary>
         public string GetCurrentLanguage()
         {
             return _("languageCode");
         }
 
+        /// <summary>
+        /// Gets the display name of the language in use, from its pack's <c>languageName</c>, such as
+        /// <c>"English"</c>. Returns the language code if the pack doesn't define a name.
+        /// </summary>
         public string GetCurrentLanguageName()
         {
             string result = _("languageName");
             return result == "languageName" ? _("languageCode") : result;
         }
 
+        /// <summary>
+        /// Gets the language codes of all loaded language packs. Use <see cref="GetLanguageName"/> to get the display
+        /// name of a language.
+        /// </summary>
         public string[] GetLanguages()
         {
             Start();
@@ -220,6 +246,12 @@ namespace SiggiUSTools {
             return languages;
         }
 
+        /// <summary>
+        /// Gets the display name of a language.
+        /// </summary>
+        /// <param name="languageCode">A language code exactly as returned by <see cref="GetLanguages"/>.</param>
+        /// <returns>The language's name, the language code if there's no such pack or it defines no name, or null if
+        /// <paramref name="languageCode"/> is null.</returns>
         public string GetLanguageName(string languageCode)
         {
             Start();
@@ -232,6 +264,12 @@ namespace SiggiUSTools {
             return languageName;
         }
 
+        /// <summary>
+        /// Gets the translated string for a key in the current language. If the current pack doesn't have the key,
+        /// the fallback pack (the first in the language pack list) is used instead. If neither has it, an error is
+        /// logged and the key itself is returned, so missing translations show up in-world.
+        /// </summary>
+        /// <param name="key">The key of the string in the language pack JSON.</param>
         public string _(string key)
         {
             Start();
@@ -257,6 +295,14 @@ namespace SiggiUSTools {
             return key;
         }
 
+        /// <summary>
+        /// Gets the translated string for a key like <see cref="_(string)"/>, and replaces <c>${key}</c> placeholders
+        /// in it. The arguments alternate between placeholder keys and their values, so
+        /// <c>_("greeting", new[] { "player", name, "count", count.ToString() })</c> fills in <c>${player}</c> and
+        /// <c>${count}</c>. Placeholders with no value are left as they are and logged as a warning.
+        /// </summary>
+        /// <param name="key">The key of the string in the language pack JSON.</param>
+        /// <param name="args">Alternating placeholder names and values. If there's an odd number, the last is ignored.</param>
         public string _(string key, string[] args)
         {
             string template = _(key);
