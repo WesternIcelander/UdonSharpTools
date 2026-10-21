@@ -1,0 +1,7 @@
+{
+  "languageCode": "is",
+  "languageName": "Íslenska",
+  "welcome": "Hæ, ${player_name}! Verið velkomin í SimpleI18n sýnisheiminn!",
+  "we_hope_you_enjoy_your_visit": "Við vonum að þú njótir heimsóknarinnar!",
+  "select_a_language": "Smelltu á tungumálahnapp hér fyrir neðan til að skipta um tungumál!"
+}

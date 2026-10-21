@@ -1,0 +1,7 @@
+{
+  "languageCode": "de",
+  "languageName": "Deutsch",
+  "welcome": "Hallo, ${player_name}! Willkommen in der SimpleI18n-Demowelt!",
+  "we_hope_you_enjoy_your_visit": "Wir hoffen, dass dir dein Besuch gefällt!",
+  "select_a_language": "Klicke unten auf eine Sprachschaltfläche, um die Sprache zu ändern!"
+}

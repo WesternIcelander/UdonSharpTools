@@ -1,0 +1,7 @@
+{
+  "languageCode": "th",
+  "languageName": "ไทย",
+  "welcome": "สวัสดี ${player_name}! ยินดีต้อนรับสู่โลกสาธิต SimpleI18n!",
+  "we_hope_you_enjoy_your_visit": "เราหวังว่าคุณจะสนุกกับการมาเยือนที่นี่!",
+  "select_a_language": "คลิกปุ่มภาษาด้านล่างเพื่อเปลี่ยนภาษา!"
+}

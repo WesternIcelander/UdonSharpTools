@@ -1,0 +1,7 @@
+{
+  "languageCode": "ja",
+  "languageName": "日本語",
+  "welcome": "${player_name}さん、こんにちは！SimpleI18nデモワールドへようこそ！",
+  "we_hope_you_enjoy_your_visit": "ごゆっくりお楽しみください！",
+  "select_a_language": "下の言語ボタンをクリックして、言語を切り替えてください！"
+}

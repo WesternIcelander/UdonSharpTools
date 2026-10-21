@@ -1,0 +1,7 @@
+{
+  "languageCode": "ru",
+  "languageName": "Русский",
+  "welcome": "Привет, ${player_name}! Добро пожаловать в демонстрационный мир SimpleI18n!",
+  "we_hope_you_enjoy_your_visit": "Надеемся, вам понравится у нас!",
+  "select_a_language": "Нажмите на кнопку языка ниже, чтобы сменить язык!"
+}

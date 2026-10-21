@@ -1,0 +1,7 @@
+{
+  "languageCode": "ko",
+  "languageName": "한국어",
+  "welcome": "안녕하세요, ${player_name}님! SimpleI18n 데모 월드에 오신 것을 환영합니다!",
+  "we_hope_you_enjoy_your_visit": "즐거운 방문이 되시길 바랍니다!",
+  "select_a_language": "아래 언어 버튼을 클릭하여 언어를 변경하세요!"
+}
