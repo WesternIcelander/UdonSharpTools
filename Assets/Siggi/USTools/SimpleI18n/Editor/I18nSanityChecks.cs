@@ -28,16 +28,19 @@ using UdonSharpEditor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using VRC.SDK3.Data;
 using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace SiggiUSTools.Editor {
     /// <summary>
-    /// When a VRChat world build is requested, asks the user whether to fill every I18n field on the scene's
-    /// UdonSharpBehaviours that is null or doesn't point at the scene's I18n with the scene's I18n.
+    /// When a VRChat world build is requested or Play Mode is entered, asks the user whether to fill every I18n field
+    /// on the scene's UdonSharpBehaviours that is null or doesn't point at the scene's I18n with the scene's I18n.
+    /// Fails the build, and blocks entering Play Mode, if an I18n has a language pack that would break it at runtime.
     /// </summary>
-    public class I18nBuildLinker : IVRCSDKBuildRequestedCallback
+    public class I18nSanityChecks : IVRCSDKBuildRequestedCallback
     {
         private const string I18nPropertyType = "PPtr<$" + nameof(I18n) + ">";
+        private const int MaxDialogProblems = 10;
 
         // Run after UdonSharp's own build checks (-1) so scripts are compiled.
         public int callbackOrder => 0;
@@ -47,6 +50,29 @@ namespace SiggiUSTools.Editor {
             if (requestedBuildType != VRCSDKRequestedBuildType.Scene) return true;
 
             I18n[] instances = Object.FindObjectsOfType<I18n>(true);
+            if (!ValidateLanguagePacks(instances, "The build was cancelled")) return false;
+            LinkI18nFields(instances);
+            return true;
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterPlayModeCheck()
+        {
+            EditorApplication.playModeStateChanged += state =>
+            {
+                if (state != PlayModeStateChange.ExitingEditMode) return;
+                I18n[] instances = Object.FindObjectsOfType<I18n>(true);
+                if (!ValidateLanguagePacks(instances, "Play Mode was not started"))
+                {
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+                LinkI18nFields(instances);
+            };
+        }
+
+        private static void LinkI18nFields(I18n[] instances)
+        {
             I18n target = instances.Length == 1 ? instances[0] : null;
 
             List<UdonSharpBehaviour> pending = new List<UdonSharpBehaviour>();
@@ -79,7 +105,7 @@ namespace SiggiUSTools.Editor {
                             "Some objects are not correctly wired to the I18n object, would you like to autofix this?",
                             "Yes",
                             "No");
-                        if (!autofixAllowed) return true;
+                        if (!autofixAllowed) return;
                     }
                     property.objectReferenceValue = target;
                     changed = true;
@@ -108,8 +134,56 @@ namespace SiggiUSTools.Editor {
             {
                 EditorSceneManager.MarkSceneDirty(target.gameObject.scene);
             }
+        }
 
-            return true;
+        // I18n can't recover from these at runtime: an exception halts the behaviour, breaking every translation.
+        private static bool ValidateLanguagePacks(I18n[] instances, string consequence)
+        {
+            List<string> problems = new List<string>();
+            foreach (I18n i18n in instances)
+            {
+                SerializedProperty packs = new SerializedObject(i18n).FindProperty("languagePacks");
+                if (packs.arraySize == 0)
+                {
+                    ReportProblem(problems, $"{GetPath(i18n)} has no language packs.", i18n);
+                }
+                for (int i = 0; i < packs.arraySize; i++)
+                {
+                    TextAsset pack = packs.GetArrayElementAtIndex(i).objectReferenceValue as TextAsset;
+                    string error = GetPackError(pack);
+                    if (error == null) continue;
+                    ReportProblem(problems, $"Language pack {i} on {GetPath(i18n)} {error}", pack != null ? (Object)pack : i18n);
+                }
+            }
+            if (problems.Count == 0) return true;
+
+            string message = $"{consequence} because of problems with language packs:\n";
+            for (int i = 0; i < problems.Count && i < MaxDialogProblems; i++)
+            {
+                message += $"\n• {problems[i]}";
+            }
+            if (problems.Count > MaxDialogProblems)
+            {
+                message += $"\n\n…and {problems.Count - MaxDialogProblems} more. See the Console for all of them.";
+            }
+            EditorUtility.DisplayDialog("I18n", message, "OK");
+            return false;
+        }
+
+        private static void ReportProblem(List<string> problems, string problem, Object context)
+        {
+            problems.Add(problem);
+            Debug.LogError($"[I18n] {problem}", context);
+        }
+
+        private static string GetPackError(TextAsset pack)
+        {
+            if (pack == null) return "is not set.";
+            if (!VRCJson.TryDeserializeFromJson(pack.text, out DataToken result)) return $"({pack.name}) is not valid JSON.";
+            if (result.TokenType != TokenType.DataDictionary) return $"({pack.name}) is not a JSON object.";
+            if (!result.DataDictionary.TryGetValue("languageCode", out DataToken languageCode)) return $"({pack.name}) has no languageCode.";
+            if (languageCode.TokenType != TokenType.String) return $"({pack.name}) has a languageCode that is not a string.";
+            return null;
         }
 
         private static bool IsValid(Object current, Component owner)
