@@ -39,6 +39,7 @@ namespace SiggiUSTools {
         private DataDictionary _byLanguageCode;
         private DataList _allLanguages;
         private DataList _listeners;
+        [SerializeField] private bool mainI18n = false;
         [SerializeField] private TextAsset[] languagePacks;
         void Start()
         {
