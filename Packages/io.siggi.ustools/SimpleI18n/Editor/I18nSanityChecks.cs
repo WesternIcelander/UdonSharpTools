@@ -340,6 +340,14 @@ namespace SiggiUSTools.SimpleI18nEditor {
                 if (IsMain(i18n)) mains[i18n.gameObject.scene] = i18n;
             }
 
+            HashSet<Scene> warned = new HashSet<Scene>();
+            foreach (I18n i18n in sorted)
+            {
+                Scene scene = i18n.gameObject.scene;
+                if (mains.ContainsKey(scene) || !warned.Add(scene)) continue;
+                Debug.LogWarning($"[I18n] No I18n in scene \"{scene.name}\" has Main I18n set, so SetLanguageGlobally() won't work. Set Main I18n on one of them.", i18n);
+            }
+
             foreach (I18n i18n in sorted)
             {
                 Scene scene = i18n.gameObject.scene;

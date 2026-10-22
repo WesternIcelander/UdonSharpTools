@@ -155,6 +155,35 @@ namespace SiggiUSTools {
             return DoSetLanguage(rfc5646Code);
         }
 
+        /// <summary>
+        /// Calls <see cref="SetLanguage"/> on all I18ns in the scene with the specified language code.
+        /// </summary>
+        /// <param name="rfc5646Code">An RFC 5646 language code, such as <c>"en"</c> or <c>"zh-TW"</c>.</param>
+        /// <returns>True if it worked on all I18n instances, false if some failed.</returns>
+        public bool SetLanguageGlobally(string rfc5646Code)
+        {
+            if (!mainI18n)
+            {
+                if (main == null)
+                {
+                    Debug.LogError("[I18n] Cannot SetLanguageGlobally() because no I18n is main.");
+                    return false;
+                }
+                return main.SetLanguageGlobally(rfc5646Code);
+            }
+
+            bool allPass = true;
+            foreach (I18n i18n in allI18ns)
+            {
+                if (!i18n.SetLanguage(rfc5646Code))
+                {
+                    allPass = false;
+                }
+            }
+
+            return allPass;
+        }
+
         bool DoSetLanguage(string rfc5646Code)
         {
             DataDictionary forwards = null;
