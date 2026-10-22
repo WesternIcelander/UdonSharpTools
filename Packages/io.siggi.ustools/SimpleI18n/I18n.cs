@@ -40,6 +40,8 @@ namespace SiggiUSTools {
         private DataList _allLanguages;
         private DataList _listeners;
         [SerializeField] private bool mainI18n = false;
+        [HideInInspector] [SerializeField] private I18n main;
+        [HideInInspector] [SerializeField] private I18n[] allI18ns;
         [SerializeField] private TextAsset[] languagePacks;
         void Start()
         {

@@ -54,6 +54,7 @@ namespace SiggiUSTools.SimpleI18nEditor {
             I18n[] instances = Object.FindObjectsOfType<I18n>(true);
             if (!ValidateLanguagePacks(instances, "The build was cancelled")) return false;
             if (!ValidateMainI18n(instances, "The build was cancelled")) return false;
+            LinkMainI18n(instances);
             return LinkI18nFields(instances, "The build was cancelled");
         }
 
@@ -65,8 +66,13 @@ namespace SiggiUSTools.SimpleI18nEditor {
                 if (state != PlayModeStateChange.ExitingEditMode) return;
                 I18n[] instances = Object.FindObjectsOfType<I18n>(true);
                 if (!ValidateLanguagePacks(instances, "Play Mode was not started")
-                    || !ValidateMainI18n(instances, "Play Mode was not started")
-                    || !LinkI18nFields(instances, "Play Mode was not started"))
+                    || !ValidateMainI18n(instances, "Play Mode was not started"))
+                {
+                    EditorApplication.isPlaying = false;
+                    return;
+                }
+                LinkMainI18n(instances);
+                if (!LinkI18nFields(instances, "Play Mode was not started"))
                 {
                     EditorApplication.isPlaying = false;
                 }
@@ -316,6 +322,87 @@ namespace SiggiUSTools.SimpleI18nEditor {
 
             ShowProblems($"{consequence} because only one I18n per scene may have Main I18n set:", problems, null);
             return false;
+        }
+
+        /// <summary>
+        /// Points every I18n's <c>main</c> at its scene's main I18n, or null if there is none. Fills the main I18n's
+        /// <c>allI18ns</c> with itself followed by the scene's other I18ns in hierarchy order, and empties everyone
+        /// else's. These fields are hidden and derived, so they're kept up to date without asking.
+        /// </summary>
+        private static void LinkMainI18n(I18n[] instances)
+        {
+            List<I18n> sorted = new List<I18n>(instances);
+            sorted.Sort((a, b) => CompareHierarchyOrder(a.transform, b.transform));
+
+            Dictionary<Scene, I18n> mains = new Dictionary<Scene, I18n>();
+            foreach (I18n i18n in sorted)
+            {
+                if (IsMain(i18n)) mains[i18n.gameObject.scene] = i18n;
+            }
+
+            foreach (I18n i18n in sorted)
+            {
+                Scene scene = i18n.gameObject.scene;
+                mains.TryGetValue(scene, out I18n main);
+                List<I18n> all = new List<I18n>();
+                if (i18n == main)
+                {
+                    all.Add(i18n);
+                    foreach (I18n other in sorted)
+                    {
+                        if (other != i18n && other.gameObject.scene == scene) all.Add(other);
+                    }
+                }
+
+                SerializedObject serializedObject = new SerializedObject(i18n);
+                bool changed = false;
+                SerializedProperty mainProperty = serializedObject.FindProperty("main");
+                if (mainProperty.objectReferenceValue != main)
+                {
+                    mainProperty.objectReferenceValue = main;
+                    changed = true;
+                }
+                SerializedProperty allProperty = serializedObject.FindProperty("allI18ns");
+                if (allProperty.arraySize != all.Count)
+                {
+                    allProperty.arraySize = all.Count;
+                    changed = true;
+                }
+                for (int i = 0; i < all.Count; i++)
+                {
+                    SerializedProperty element = allProperty.GetArrayElementAtIndex(i);
+                    if (element.objectReferenceValue == all[i]) continue;
+                    element.objectReferenceValue = all[i];
+                    changed = true;
+                }
+                if (!changed) continue;
+
+                serializedObject.ApplyModifiedProperties();
+                UdonSharpEditorUtility.CopyProxyToUdon(i18n);
+                EditorUtility.SetDirty(i18n);
+                EditorSceneManager.MarkSceneDirty(scene);
+            }
+        }
+
+        private static int CompareHierarchyOrder(Transform a, Transform b)
+        {
+            List<int> aIndices = GetSiblingIndices(a);
+            List<int> bIndices = GetSiblingIndices(b);
+            for (int i = 0; i < aIndices.Count && i < bIndices.Count; i++)
+            {
+                if (aIndices[i] != bIndices[i]) return aIndices[i].CompareTo(bIndices[i]);
+            }
+            return aIndices.Count.CompareTo(bIndices.Count);
+        }
+
+        private static List<int> GetSiblingIndices(Transform transform)
+        {
+            List<int> indices = new List<int>();
+            for (; transform != null; transform = transform.parent)
+            {
+                indices.Insert(0, transform.GetSiblingIndex());
+            }
+            return indices;
         }
 
         private static bool IsMain(I18n i18n)
