@@ -337,11 +337,25 @@ namespace SiggiUSTools {
         /// <param name="args">Alternating placeholder names and values. If there's an odd number, the last is ignored.</param>
         public string _(string key, string[] args)
         {
-            string template = _(key);
+            return Format(_(key), args);
+        }
+
+        /// <summary>
+        /// Replaces <c>${key}</c> placeholders in a string you already have, without looking anything up in a
+        /// language pack. This is the substitution step of <see cref="_(string, string[])"/>.
+        /// The arguments alternate between placeholder keys and their values, so
+        /// <c>I18n.Format(greeting, new[] { "player", name, "count", count.ToString() })</c> fills in
+        /// <c>${player}</c> and <c>${count}</c>. Placeholders with no value are left as they are and logged as a warning.
+        /// </summary>
+        /// <param name="template">The string containing <c>${key}</c> placeholders.</param>
+        /// <param name="args">Alternating placeholder names and values. If there's an odd number, the last is ignored.</param>
+        /// <returns>The string with placeholders replaced, or <paramref name="template"/> unchanged if there are no args.</returns>
+        public static string Format(string template, string[] args)
+        {
             if (args == null || args.Length == 0) return template;
             if (args.Length % 2 != 0)
             {
-                Debug.LogWarning($"[I18n] Odd number of placeholder args for key {key}; the last one is ignored.");
+                Debug.LogWarning($"[I18n] Odd number of placeholder args for template {template}; the last one is ignored.");
             }
 
             string result = "";
@@ -362,7 +376,7 @@ namespace SiggiUSTools {
                 }
                 else
                 {
-                    Debug.LogWarning($"[I18n] No value for placeholder {name} in key {key}");
+                    Debug.LogWarning($"[I18n] No value for placeholder {name} in template {template}");
                     result += template.Substring(start, end - start + 1);
                 }
                 pos = end + 1;
@@ -370,7 +384,7 @@ namespace SiggiUSTools {
             return result + template.Substring(pos);
         }
 
-        int FindArg(string[] args, string name)
+        static int FindArg(string[] args, string name)
         {
             for (int i = 0; i + 1 < args.Length; i += 2)
             {
